@@ -68,7 +68,7 @@ const GamePlay = ({ numPlayers, numLives, timer, setGameStarted }) => {
           className="h-[100px] w-[130px] "
         />
       </div>
-      <div className="min-h-screen px-8 md:px-24 pb-14 md:pb-32 flex flex-col space-y-20 select-none font-Roboto">
+      <div className="min-h-height px-8 md:px-24 pb-14 md:pb-32 flex flex-col space-y-10 md:space-y-20 select-none font-Roboto">
         <div className="flex flex-col">
           {/* <h1>Guess This Word</h1> */}
           <p>Category: {category}</p>
@@ -125,7 +125,7 @@ const GamePlay = ({ numPlayers, numLives, timer, setGameStarted }) => {
             "abcdefghijklmnopqrstuvwxyz".split("").map((letter, index) => (
               <button
                 key={letter}
-                className={`w-[60px] h-[60px] md:w-[100px] md:h-[100px] text-4xl md:text-5xl border border-purple-600 rounded-lg md:rounded-3xl mx-1 my-1  ${
+                className={`w-[40px] h-[40px] md:w-[100px] md:h-[100px] text-4xl md:text-5xl border border-purple-600 rounded-lg md:rounded-3xl mx-1 my-1  ${
                   guesses.includes(letter)
                     ? currentWord.includes(letter)
                       ? "bg-purple-500" // Correct guess

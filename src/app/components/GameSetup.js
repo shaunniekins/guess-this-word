@@ -47,7 +47,7 @@ const GameSetup = () => {
       ) : (
         <div className="flex flex-col items-center justify-between min-h-screen mx-[25px] xl:mx-[350px] select-none font-Roboto">
           <div className="w-full pt-3 px-5">
-            <h5 className="self-start text-3xl font-[500] flex items-center">
+            <h5 className="justify-center md:justify-start text-3xl font-[500] flex items-center">
               <img
                 src="guess-this-word-logo.png"
                 alt="Guess Logo"
@@ -67,7 +67,7 @@ const GameSetup = () => {
                   <p>{!showMultiplayer ? "►" : "⏷"} </p>
                 </button>
                 {showMultiplayer ? (
-                  <div className="w-full bg-purple-100 p-4 flex justify-between items-center rounded-lg">
+                  <div className="w-full bg-purple-100 p-4 flex flex-col md:flex-row space-y-3 md:space-y-0 justify-between items-center rounded-lg">
                     <div className="w-full flex justify-around ">
                       <button
                         className="p-4 rounded-3xl bg-purple-300"
@@ -119,7 +119,7 @@ const GameSetup = () => {
               </div>
             </div>
           </div>
-          <div className="w-full py-2 px-5 flex justify-between text-purple-500">
+          <div className="w-full bottom-0 mx-[25px] xl:mx-[350px] py-2 px-5 flex justify-between text-purple-500">
             <h5 className="text-sm self-start">Shaun Niel Ochavo</h5>
             <h6 className="text-sm self-start">2023</h6>
           </div>

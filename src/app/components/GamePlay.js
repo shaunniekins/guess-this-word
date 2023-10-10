@@ -1,63 +1,132 @@
-// Import React, useState, useEffect, and any other necessary components
+// problems:
+// -- add: next round
+// -- add: guess whole word for what player
+
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import wordData from "../data/words.json";
 
 const GamePlay = ({ numPlayers, numLives, timer, setGameStarted }) => {
   const [currentWord, setCurrentWord] = useState("");
   const [category, setCategory] = useState("");
   const [guesses, setGuesses] = useState([]);
-  const [remainingLives, setRemainingLives] = useState(numLives);
+  const [remainingLives, setRemainingLives] = useState(
+    Array.from({ length: numPlayers }, () => numLives)
+  );
   const [remainingTime, setRemainingTime] = useState(timer);
+  const [currentPlayer, setCurrentPlayer] = useState(1);
+  const [players, setPlayers] = useState(
+    Array.from({ length: numPlayers }, (_, i) => i + 1)
+  );
+  const [disqualifiedPlayers, setDisqualifiedPlayers] = useState([]);
+
+  const playerTimers = useRef({});
+
+  const isGameOver =
+    disqualifiedPlayers.length === numPlayers ||
+    remainingLives.every((lives) => lives <= 0);
+
+  const hasWon = currentWord
+    .split("")
+    .every((letter) => guesses.includes(letter) || letter === " ");
 
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * wordData.length);
     const randomWord = wordData[randomIndex];
-    setCurrentWord(randomWord.word.toLowerCase()); // Convert word to lowercase
+    setCurrentWord(randomWord.word.toLowerCase());
     setCategory(randomWord.category);
-    setRemainingLives(numLives);
+    setRemainingLives(Array.from({ length: numPlayers }, () => numLives));
     setRemainingTime(timer);
+    setCurrentPlayer(1);
   }, [numLives, timer]);
 
-  // Wrap the timer-related code in a conditional check for timer > 0
-  // Decrement the timer every second
   useEffect(() => {
-    if (timer > 0) {
-      let timerInterval;
+    if (numPlayers > 1 || (numPlayers === 1 && timer > 0)) {
+      if (!isGameOver) {
+        let gameTimerInterval;
 
-      if (remainingTime > 0) {
-        timerInterval = setInterval(() => {
-          setRemainingTime(remainingTime - 1);
-        }, 1000);
-      } else {
-        // Timer has reached zero, the game is over
-        clearInterval(timerInterval);
-        setGameStarted(false);
+        if (remainingTime > 0) {
+          gameTimerInterval = setInterval(() => {
+            setRemainingTime((prevTime) => prevTime - 1);
+          }, 1000);
+        } else if (!disqualifiedPlayers.includes(currentPlayer)) {
+          // Disqualify the player if they run out of time
+          disqualifyPlayer(currentPlayer);
+          switchToNextPlayer();
+        }
+
+        // Stop the timer when a player wins
+        if (hasWon) {
+          clearInterval(gameTimerInterval);
+        }
+
+        return () => {
+          clearInterval(gameTimerInterval);
+        };
       }
-
-      return () => {
-        clearInterval(timerInterval);
-      };
     }
-  }, [remainingTime, setGameStarted]);
+  }, [
+    remainingTime,
+    disqualifiedPlayers,
+    currentPlayer,
+    numPlayers,
+    timer,
+    hasWon,
+    isGameOver,
+  ]);
+
+  useEffect(() => {
+    if (numPlayers > 1) {
+      players.forEach((player) => {
+        playerTimers.current[player] = timer;
+      });
+    }
+  }, [numPlayers, players, timer]);
 
   const handleGuess = (letter) => {
-    const letterLower = letter.toLowerCase(); // Convert the guessed letter to lowercase
+    const letterLower = letter.toLowerCase();
     if (!guesses.includes(letterLower)) {
       setGuesses([...guesses, letterLower]);
       if (!currentWord.includes(letterLower)) {
-        // Guessed letter is not in the word
-        setRemainingLives(remainingLives - 1);
+        const updatedLives = [...remainingLives];
+        updatedLives[currentPlayer - 1] -= 1;
+        setRemainingLives(updatedLives);
+        if (updatedLives[currentPlayer - 1] === 0) {
+          disqualifyPlayer(currentPlayer);
+        }
+      }
+      if (!(numPlayers === 1 && timer > 0)) {
+        // Only switch to the next player if it's not a single player with a timer
+        switchToNextPlayer();
       }
     }
   };
 
-  const isGameOver = (remainingLives === 0 || remainingTime === 0) && timer > 0;
+  const switchToNextPlayer = () => {
+    let nextPlayer = (currentPlayer % numPlayers) + 1;
+    while (disqualifiedPlayers.includes(nextPlayer)) {
+      nextPlayer = (nextPlayer % numPlayers) + 1;
+    }
+    setCurrentPlayer(nextPlayer);
+    setRemainingTime(playerTimers.current[nextPlayer]);
+  };
 
-  const hasWon = currentWord
-    .split("")
-    .every((letter) => guesses.includes(letter) || letter === " "); // Check if all letters have been guessed
+  const disqualifyPlayer = (player) => {
+    setDisqualifiedPlayers([...disqualifiedPlayers, player]);
+  };
+
+  const handleNextGame = () => {
+    const randomIndex = Math.floor(Math.random() * wordData.length);
+    const randomWord = wordData[randomIndex];
+    setCurrentWord(randomWord.word.toLowerCase());
+    setCategory(randomWord.category);
+    setGuesses([]);
+    setDisqualifiedPlayers([]);
+    setRemainingLives(Array.from({ length: numPlayers }, () => numLives));
+    setRemainingTime(timer);
+    setCurrentPlayer(1);
+  };
 
   return (
     <>
@@ -69,17 +138,43 @@ const GamePlay = ({ numPlayers, numLives, timer, setGameStarted }) => {
         />
       </div>
       <div className="min-h-height px-8 md:px-24 pb-14 md:pb-32 flex flex-col space-y-10 md:space-y-20 select-none font-Roboto">
-        <div className="flex flex-col">
-          {/* <h1>Guess This Word</h1> */}
-          <p>Category: {category}</p>
-          <p>Remaining Lives: {remainingLives}</p>
-          {timer === 0 ? "" : <p>Remaining Time: {remainingTime} seconds</p>}
+        <div className="flex justify-between items-center">
+          <div className="flex flex-col">
+            {/* <h1>Guess This Word</h1> */}
+            <p>Category: {category}</p>
+            {numPlayers === 1 ? (
+              <p>Remaining Lives: {remainingLives[currentPlayer - 1]} </p>
+            ) : (
+              ""
+            )}
+            {timer === 0 ? "" : <p>Remaining Time: {remainingTime} seconds</p>}
+            {/* {numPlayers !== 1 ? <p>Player: {currentPlayer}</p> : ""} */}
 
-          <button
-            className="self-start rounded-lg text-purple-800"
-            onClick={() => setGameStarted(false)}>
-            New Game
-          </button>
+            <button
+              className="self-start rounded-lg text-purple-800"
+              onClick={() => setGameStarted(false)}>
+              Change Setup
+            </button>
+          </div>
+          {numPlayers !== 1 ? (
+            <div className="flex flex-col">
+              {remainingLives.map((life, index) => (
+                <div
+                  key={index}
+                  className={`${
+                    currentPlayer === index + 1
+                      ? "font-bold text-purple-700"
+                      : disqualifiedPlayers.includes(index + 1)
+                      ? "line-through"
+                      : ""
+                  }`}>
+                  Player {index + 1} - Lives: {life}
+                </div>
+              ))}
+            </div>
+          ) : (
+            ""
+          )}
         </div>
         <div className="text-center word-display text-4xl md:text-7xl">
           {currentWord.split("").map((letter, index) => (
@@ -102,34 +197,36 @@ const GamePlay = ({ numPlayers, numLives, timer, setGameStarted }) => {
                 <p>Game Over!</p>
                 <button
                   className=" bg-orange-400 rounded-lg px-3 py-2"
-                  onClick={() => setGameStarted(false)}>
-                  New Game
+                  onClick={handleNextGame}>
+                  Try Again
                 </button>
               </div>
             ) : (
-              <div className=" space-y-3">
+              <div className="flex flex-col items-center space-y-3">
                 <p>Congratulations, You Win!</p>
-                <button
-                  className=" bg-orange-400 rounded-lg px-3 py-2"
-                  onClick={() => setGameStarted(false)}>
-                  Change
-                </button>
-                <button
-                  className=" bg-purple-400 rounded-lg px-3 py-2"
-                  onClick={() => setGameStarted(false)}>
-                  Next Round
-                </button>
+                <div className="flex space-x-3">
+                  <button
+                    className=" bg-orange-400 rounded-lg px-3 py-2"
+                    onClick={() => setGameStarted(false)}>
+                    Change Setup
+                  </button>
+                  <button
+                    className=" bg-purple-400 rounded-lg px-3 py-2"
+                    onClick={handleNextGame}>
+                    Next Round
+                  </button>
+                </div>
               </div>
             )
           ) : (
             "abcdefghijklmnopqrstuvwxyz".split("").map((letter, index) => (
               <button
                 key={letter}
-                className={`w-[40px] h-[40px] md:w-[100px] md:h-[100px] text-4xl md:text-5xl border border-purple-600 rounded-lg md:rounded-3xl mx-1 my-1  ${
+                className={`w-[40px] h-[40px] md:w-[100px] md:h-[100px] text-4xl md:text-5xl border border-purple-600 rounded-lg md:rounded-3xl mx-[2px] my-1  ${
                   guesses.includes(letter)
                     ? currentWord.includes(letter)
-                      ? "bg-purple-500" // Correct guess
-                      : "bg-purple-100" // Incorrect guess
+                      ? "bg-purple-600" // Correct guess
+                      : "bg-purple-200" // Incorrect guess
                     : "bg-white" // Default color for unguessed letters
                 }`}
                 onClick={() => handleGuess(letter)}

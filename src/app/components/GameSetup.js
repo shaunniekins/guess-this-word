@@ -10,9 +10,9 @@ const GameSetup = () => {
   const [timer, setTimer] = useState(0);
 
   const maxLivesForPlayer1AndPlayer2 = 8;
-  const minLivesForMultiplayer = 6;
-  const timedSinglePlayer = 60; //seconds
-  const timedMultiplayer = 20; //seconds
+  const minLivesForMultiplayer = 3;
+  const timedSinglePlayer = 10; //seconds
+  const timedMultiplayer = 5; //seconds
 
   const startGame = (playerNum, isTimed) => {
     // console.log("player", playerNum);
@@ -45,7 +45,7 @@ const GameSetup = () => {
           setGameStarted={setGameStarted}
         />
       ) : (
-        <div className="flex flex-col items-center justify-between min-h-screen mx-[25px] xl:mx-[350px] select-none font-Roboto">
+        <div className="flex flex-col items-center justify-between min-h-screen mx-0 xl:mx-[350px] select-none font-Roboto">
           <div className="w-full pt-3 px-5">
             <h5 className="justify-center md:justify-start text-3xl font-[500] flex items-center">
               <img

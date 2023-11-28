@@ -1,31 +1,87 @@
-// problems:
-// -- add: next round
-// -- add: guess whole word for what player
-
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import wordData from "../data/words.json";
+import GuessModal from "./GuessModal";
+import DisplayPlay from "./DisplayPlay";
 
 const GamePlay = ({ numPlayers, numLives, timer, setGameStarted }) => {
   const [currentWord, setCurrentWord] = useState("");
+  const [usedWords, setUsedWords] = useState([]); // Track used words
   const [category, setCategory] = useState("");
   const [guesses, setGuesses] = useState([]);
+  const [remainingTime, setRemainingTime] = useState(timer);
+  const [currentPlayer, setCurrentPlayer] = useState(1);
+  const [disqualifiedPlayers, setDisqualifiedPlayers] = useState([]);
+  const [round, setRound] = useState(numPlayers === 1 ? 0 : 1);
   const [remainingLives, setRemainingLives] = useState(
     Array.from({ length: numPlayers }, () => numLives)
   );
-  const [remainingTime, setRemainingTime] = useState(timer);
-  const [currentPlayer, setCurrentPlayer] = useState(1);
+
+  // single player: 1; multiplayer: 2 or more
   const [players, setPlayers] = useState(
     Array.from({ length: numPlayers }, (_, i) => i + 1)
   );
-  const [disqualifiedPlayers, setDisqualifiedPlayers] = useState([]);
+
+  // Guess word
+  const [isGuessModalOpen, setIsGuessModalOpen] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState(1);
+  const [guess, setGuess] = useState("");
+
+  // Add a state variable for roundWinner
+  const [roundWinner, setRoundWinner] = useState(null);
+  const [isGameOver, setIsGameOver] = useState(false);
 
   const playerTimers = useRef({});
+  console.log("usedWords", usedWords);
 
-  const isGameOver =
-    disqualifiedPlayers.length === numPlayers ||
-    remainingLives.every((lives) => lives <= 0);
+  const handleGuessClick = () => {
+    setIsGuessModalOpen(true);
+  };
+
+  const handleGuessSubmit = () => {
+    setIsGuessModalOpen(false);
+
+    // console.log("guess", guess);
+    // console.log("currentWord", currentWord);
+
+    // Compare the guess with the current word
+    if (guess.toLowerCase() === currentWord) {
+      // Award points to the player who guessed it
+      const updatedPlayerPoints = [...playerPoints];
+      updatedPlayerPoints[selectedPlayer - 1] += 1;
+      setPlayerPoints(updatedPlayerPoints);
+      setGuess(" ");
+
+      // Set the round winner
+      setRoundWinner(selectedPlayer);
+      setIsGameOver(true);
+
+      // Check if all rounds have been played to declare the overall game winner
+      if (round >= numPlayers) {
+        // Declare the overall game winner
+        let gameWinner = 1;
+        for (let i = 1; i < numPlayers; i++) {
+          if (playerPoints[i] > playerPoints[gameWinner - 1]) {
+            gameWinner = i + 1;
+          }
+        }
+        setRoundWinner(gameWinner);
+      }
+    } else {
+      // Handle incorrect guess if needed
+      disqualifyPlayer(selectedPlayer);
+      switchToNextPlayer();
+      setRoundWinner(null); // Reset roundWinner if the guess is incorrect
+    }
+  };
+
+  useEffect(() => {
+    setIsGameOver(
+      disqualifiedPlayers.length === numPlayers ||
+        remainingLives.every((lives) => lives <= 0)
+    );
+  }, [disqualifiedPlayers, remainingLives]);
 
   const hasWon = currentWord
     .split("")
@@ -34,16 +90,66 @@ const GamePlay = ({ numPlayers, numLives, timer, setGameStarted }) => {
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * wordData.length);
     const randomWord = wordData[randomIndex];
-    setCurrentWord(randomWord.word.toLowerCase());
-    setCategory(randomWord.category);
+
+    // useEffect(() => {
+    //   const randomizeWord = () => {
+    //     const randomIndex = Math.floor(Math.random() * wordData.length);
+    //     const randomWord = wordData[randomIndex];
+
+    //     return (randomWord);
+    //   }
+
+    //   let randomWord = ()
+
+    //   // Check if randomWord is not in the array of usedWords
+    //   if (!usedWords.includes(randomWord.word.toLowerCase())) {
+    //     setUsedWords([...usedWords, randomWord.word.toLowerCase()]);
+    //     setCurrentWord(randomWord.word.toLowerCase());
+    //     setCategory(randomWord.category);
+    //     setRemainingLives(Array.from({ length: numPlayers }, () => numLives));
+    //     setRemainingTime(timer);
+    //     setCurrentPlayer(1);
+    //   }
+    // }, [numLives, timer, usedWords]);
+
+    // Check if randomWord is in the array of usedWords
+    if (usedWords.includes(randomWord.word.toLowerCase())) {
+      // If it's already in usedWords, generate a new random word
+      const newRandomWord = getRandomUnusedWord(wordData, usedWords);
+      setUsedWords([...usedWords, newRandomWord.word.toLowerCase()]);
+      setCurrentWord(newRandomWord.word.toLowerCase());
+      setCategory(newRandomWord.category);
+    } else {
+      // If it's not in usedWords, add it to usedWords and set the current word
+      setUsedWords([...usedWords, randomWord.word.toLowerCase()]);
+      setCurrentWord(randomWord.word.toLowerCase());
+      setCategory(randomWord.category);
+    }
+
+    // Rest of your code...
     setRemainingLives(Array.from({ length: numPlayers }, () => numLives));
     setRemainingTime(timer);
     setCurrentPlayer(1);
-  }, [numLives, timer]);
+  }, [round, numLives, timer]);
+
+  // Function to get a random word that hasn't been used yet
+  function getRandomUnusedWord(wordData, usedWords) {
+    let randomWord;
+    do {
+      const randomIndex = Math.floor(Math.random() * wordData.length);
+      randomWord = wordData[randomIndex];
+    } while (usedWords.includes(randomWord.word.toLowerCase()));
+    return randomWord;
+  }
+
+  const [playerPoints, setPlayerPoints] = useState(
+    Array.from({ length: numPlayers }, () => 0)
+  );
 
   useEffect(() => {
     if (numPlayers > 1 || (numPlayers === 1 && timer > 0)) {
-      if (!isGameOver) {
+      if (!isGameOver && !isGuessModalOpen) {
+        // Only run this logic if the modal is not open
         let gameTimerInterval;
 
         if (remainingTime > 0) {
@@ -74,6 +180,7 @@ const GamePlay = ({ numPlayers, numLives, timer, setGameStarted }) => {
     timer,
     hasWon,
     isGameOver,
+    isGuessModalOpen,
   ]);
 
   useEffect(() => {
@@ -123,120 +230,84 @@ const GamePlay = ({ numPlayers, numLives, timer, setGameStarted }) => {
     setCategory(randomWord.category);
     setGuesses([]);
     setDisqualifiedPlayers([]);
+    setRound(0);
     setRemainingLives(Array.from({ length: numPlayers }, () => numLives));
     setRemainingTime(timer);
     setCurrentPlayer(1);
   };
 
+  const handleNextRound = () => {
+    // Check if the current player's guess was correct
+    const isCorrectGuess = guess.toLowerCase() === currentWord;
+
+    setRound(round + 1);
+
+    // Update the player points for the current round if the guess was correct
+    if (isCorrectGuess) {
+      const updatedPlayerPoints = [...playerPoints];
+      updatedPlayerPoints[currentPlayer - 1] += 1; // You can adjust the points earned as needed
+      setPlayerPoints(updatedPlayerPoints);
+    }
+
+    // Reset the game for the next round
+    const randomIndex = Math.floor(Math.random() * wordData.length);
+    const randomWord = wordData[randomIndex];
+    setCurrentWord(randomWord.word.toLowerCase());
+    setCategory(randomWord.category);
+    setGuesses([]);
+    setDisqualifiedPlayers([]);
+    setRemainingLives(Array.from({ length: numPlayers }, () => numLives));
+    setRemainingTime(timer);
+
+    // Switch to the next player for the next round
+    let nextPlayer = (currentPlayer % numPlayers) + 1;
+    while (disqualifiedPlayers.includes(nextPlayer)) {
+      nextPlayer = (nextPlayer % numPlayers) + 1;
+    }
+    setCurrentPlayer(nextPlayer);
+
+    // Clear the guess for the next round
+    setGuess("");
+
+    // Update the roundWinner to null, as it's a new round
+    setRoundWinner(null);
+  };
+
   return (
     <>
-      <div className="flex items-center justify-center">
-        <img
-          src="guess-this-word-logo.png"
-          alt="Guess Logo"
-          className="h-[100px] w-[130px] "
+      {isGuessModalOpen && (
+        <GuessModal
+          selectedPlayer={selectedPlayer}
+          setSelectedPlayer={setSelectedPlayer}
+          players={players}
+          disqualifiedPlayers={disqualifiedPlayers}
+          guess={guess}
+          setGuess={setGuess}
+          setIsGuessModalOpen={setIsGuessModalOpen}
+          handleGuessSubmit={handleGuessSubmit}
         />
-      </div>
-      <div className="min-h-height px-8 md:px-24 pb-14 md:pb-32 flex flex-col space-y-10 md:space-y-20 select-none font-Roboto">
-        <div className="flex justify-between items-center">
-          <div className="flex flex-col">
-            {/* <h1>Guess This Word</h1> */}
-            <p>Category: {category}</p>
-            {numPlayers === 1 ? (
-              <p>Remaining Lives: {remainingLives[currentPlayer - 1]} </p>
-            ) : (
-              ""
-            )}
-            {timer === 0 ? "" : <p>Remaining Time: {remainingTime} seconds</p>}
-            {/* {numPlayers !== 1 ? <p>Player: {currentPlayer}</p> : ""} */}
-
-            <button
-              className="self-start rounded-lg text-purple-800"
-              onClick={() => setGameStarted(false)}>
-              Change Setup
-            </button>
-          </div>
-          {numPlayers !== 1 ? (
-            <div className="flex flex-col">
-              {remainingLives.map((life, index) => (
-                <div
-                  key={index}
-                  className={`${
-                    currentPlayer === index + 1
-                      ? "font-bold text-purple-700"
-                      : disqualifiedPlayers.includes(index + 1)
-                      ? "line-through"
-                      : ""
-                  }`}>
-                  Player {index + 1} - Lives: {life}
-                </div>
-              ))}
-            </div>
-          ) : (
-            ""
-          )}
-        </div>
-        <div className="text-center word-display text-4xl md:text-7xl">
-          {currentWord.split("").map((letter, index) => (
-            <span key={index} className="letter">
-              {letter === " " ? (
-                <div className="inline mx-3" />
-              ) : guesses.includes(letter.toLowerCase()) ? (
-                letter
-              ) : (
-                " _ "
-              )}
-            </span>
-          ))}
-        </div>
-
-        <div className="alphabet-buttons text-center">
-          {isGameOver || hasWon ? (
-            isGameOver ? (
-              <div className=" space-y-3">
-                <p>Game Over!</p>
-                <button
-                  className=" bg-orange-400 rounded-lg px-3 py-2"
-                  onClick={handleNextGame}>
-                  Try Again
-                </button>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center space-y-3">
-                <p>Congratulations, You Win!</p>
-                <div className="flex space-x-3">
-                  <button
-                    className=" bg-orange-400 rounded-lg px-3 py-2"
-                    onClick={() => setGameStarted(false)}>
-                    Change Setup
-                  </button>
-                  <button
-                    className=" bg-purple-400 rounded-lg px-3 py-2"
-                    onClick={handleNextGame}>
-                    Next Round
-                  </button>
-                </div>
-              </div>
-            )
-          ) : (
-            "abcdefghijklmnopqrstuvwxyz".split("").map((letter, index) => (
-              <button
-                key={letter}
-                className={`w-[40px] h-[40px] md:w-[100px] md:h-[100px] text-4xl md:text-5xl border border-purple-600 rounded-lg md:rounded-3xl mx-[2px] my-1  ${
-                  guesses.includes(letter)
-                    ? currentWord.includes(letter)
-                      ? "bg-purple-600" // Correct guess
-                      : "bg-purple-200" // Incorrect guess
-                    : "bg-white" // Default color for unguessed letters
-                }`}
-                onClick={() => handleGuess(letter)}
-                disabled={guesses.includes(letter) || isGameOver}>
-                {letter}
-              </button>
-            ))
-          )}
-        </div>
-      </div>
+      )}
+      <DisplayPlay
+        category={category}
+        guesses={guesses}
+        numPlayers={numPlayers}
+        disqualifiedPlayers={disqualifiedPlayers}
+        round={round}
+        remainingLives={remainingLives}
+        currentPlayer={currentPlayer}
+        timer={timer}
+        remainingTime={remainingTime}
+        setGameStarted={setGameStarted}
+        playerPoints={playerPoints}
+        handleGuessClick={handleGuessClick}
+        currentWord={currentWord}
+        isGameOver={isGameOver}
+        hasWon={hasWon}
+        roundWinner={roundWinner}
+        handleNextRound={handleNextRound}
+        handleNextGame={handleNextGame}
+        handleGuess={handleGuess}
+      />
     </>
   );
 };

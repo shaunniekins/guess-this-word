@@ -4,15 +4,15 @@ import GamePlay from "./GamePlay";
 
 const GameSetup = () => {
   const [numPlayers, setNumPlayers] = useState(1);
-  const [numLives, setNumLives] = useState(8);
+  const [numLives, setNumLives] = useState(2);
   const [gameStarted, setGameStarted] = useState(false);
   const [showMultiplayer, setShowMultiplayer] = useState(false);
   const [timer, setTimer] = useState(0);
 
-  const maxLivesForPlayer1AndPlayer2 = 8;
+  const maxLivesForPlayer1AndPlayer2 = 5;
   const minLivesForMultiplayer = 3;
-  const timedSinglePlayer = 10; //seconds
-  const timedMultiplayer = 5; //seconds
+  const timedSinglePlayer = 60; //seconds
+  const timedMultiplayer = 20; //seconds
 
   const startGame = (playerNum, isTimed) => {
     // console.log("player", playerNum);
@@ -45,7 +45,7 @@ const GameSetup = () => {
           setGameStarted={setGameStarted}
         />
       ) : (
-        <div className="flex flex-col items-center justify-between min-h-screen mx-0 xl:mx-[350px] select-none font-Roboto">
+        <div className="flex flex-col items-center justify-between min-h-[100dvh] mx-0 xl:mx-[350px] select-none font-Roboto">
           <div className="w-full pt-3 px-5">
             <h5 className="justify-center md:justify-start text-3xl font-[500] flex items-center">
               <img
@@ -68,30 +68,38 @@ const GameSetup = () => {
                 </button>
                 {showMultiplayer ? (
                   <div className="w-full bg-purple-100 p-4 flex flex-col md:flex-row space-y-3 md:space-y-0 justify-between items-center rounded-lg">
-                    <div className="w-full flex justify-around ">
-                      <button
-                        className="p-4 rounded-3xl bg-purple-300"
-                        onClick={() => startGame(2, true)}>
-                        2P
-                      </button>
-                      <button
-                        className="p-4 rounded-3xl bg-purple-300"
-                        onClick={() => startGame(3, true)}>
-                        3P
-                      </button>
-                      <button
-                        className="p-4 rounded-3xl bg-purple-300"
-                        onClick={() => startGame(4, true)}>
-                        4P
-                      </button>
+                    <div className="w-full flex flex-col items-center space-y-4">
+                      <div className="w-full flex justify-around ">
+                        <button
+                          className="p-4 rounded-3xl bg-purple-300"
+                          onClick={() => startGame(2, true)}>
+                          2P
+                        </button>
+                        <button
+                          className="p-4 rounded-3xl bg-purple-300"
+                          onClick={() => startGame(3, true)}>
+                          3P
+                        </button>
+                        <button
+                          className="p-4 rounded-3xl bg-purple-300"
+                          onClick={() => startGame(4, true)}>
+                          4P
+                        </button>
+                      </div>
+                      <span className="text-sm text-gray-500">
+                        Play with friends using one device
+                      </span>
                     </div>
-                    <div className="w-full flex justify-around items-center">
-                      <p>or</p>
-                      <button
-                        className="py-2 px-16 rounded-3xl bg-purple-300"
-                        onClick={() => alert("Feature not yet available.")}>
-                        Link
-                      </button>
+                    <div className="w-full flex flex-col items-center space-y-4">
+                      <div className="w-full flex justify-around items-center">
+                        <p>or</p>
+                        <button
+                          className="py-2 px-16 rounded-3xl bg-purple-300"
+                          onClick={() => alert("Feature not yet available.")}>
+                          Link
+                        </button>
+                      </div>
+                      <span className="text-sm text-gray-500" />
                     </div>
                   </div>
                 ) : (

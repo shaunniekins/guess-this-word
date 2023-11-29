@@ -1,21 +1,21 @@
 "use client";
+
 import React, { useState } from "react";
 import GamePlay from "./GamePlay";
 
-const GameSetup = () => {
-  const [numPlayers, setNumPlayers] = useState(1);
-  const [numLives, setNumLives] = useState(2);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [showMultiplayer, setShowMultiplayer] = useState(false);
-  const [timer, setTimer] = useState(0);
+const GameSetup: React.FC = () => {
+  const [numPlayers, setNumPlayers] = useState<number>(1);
+  const [numLives, setNumLives] = useState<number>(2);
+  const [gameStarted, setGameStarted] = useState<boolean>(false);
+  const [showMultiplayer, setShowMultiplayer] = useState<boolean>(false);
+  const [timer, setTimer] = useState<number>(0);
 
   const maxLivesForPlayer1AndPlayer2 = 5;
   const minLivesForMultiplayer = 3;
   const timedSinglePlayer = 60; //seconds
-  const timedMultiplayer = 20; //seconds
+  const timedMultiplayer = 40; //seconds
 
-  const startGame = (playerNum, isTimed) => {
-    // console.log("player", playerNum);
+  const startGame = (playerNum: number, isTimed: boolean) => {
     if (playerNum <= 2) {
       setNumLives(maxLivesForPlayer1AndPlayer2);
     } else {

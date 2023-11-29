@@ -1,4 +1,17 @@
-const GuessModal = ({
+import React, { useState } from "react";
+
+interface GuessModalProps {
+  selectedPlayer: number;
+  setSelectedPlayer: (player: number) => void;
+  players: number[];
+  disqualifiedPlayers: number[];
+  guess: string;
+  setGuess: (guess: string) => void;
+  setIsGuessModalOpen: (isOpen: boolean) => void;
+  handleGuessSubmit: () => void;
+}
+
+const GuessModal: React.FC<GuessModalProps> = ({
   selectedPlayer,
   setSelectedPlayer,
   players,
@@ -8,6 +21,11 @@ const GuessModal = ({
   setIsGuessModalOpen,
   handleGuessSubmit,
 }) => {
+  console.log("selectedPlayer: ", selectedPlayer);
+  console.log("players: ", players);
+  console.log("disqualifiedPlayers: ", disqualifiedPlayers);
+  console.log("guess: ", guess);
+
   return (
     <div className="fixed z-10 inset-0 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">

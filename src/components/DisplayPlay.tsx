@@ -1,4 +1,28 @@
-const DisplayPlay = ({
+import React from "react";
+
+interface DisplayPlayProps {
+  category: string;
+  guesses: string[];
+  numPlayers: number;
+  disqualifiedPlayers: number[];
+  round: number;
+  remainingLives: number[];
+  currentPlayer: number;
+  timer: number;
+  remainingTime: number;
+  setGameStarted: (value: boolean) => void;
+  playerPoints: number[];
+  handleGuessClick: () => void;
+  currentWord: string;
+  isGameOver: boolean;
+  hasWon: boolean;
+  roundWinner: number | null;
+  handleNextRound: () => void;
+  handleNextGame: () => void;
+  handleGuess: (letter: string) => void;
+}
+
+const DisplayPlay: React.FC<DisplayPlayProps> = ({
   category,
   guesses,
   numPlayers,
@@ -19,6 +43,21 @@ const DisplayPlay = ({
   handleNextGame,
   handleGuess,
 }) => {
+  // console.log("category: ", category);
+  // console.log("guesses: ", guesses);
+  // console.log("numPlayers: ", numPlayers);
+  // console.log("disqualifiedPlayers: ", disqualifiedPlayers);
+  // console.log("round: ", round);
+  // console.log("remainingLives: ", remainingLives);
+  // console.log("currentPlayer: ", currentPlayer);
+  // console.log("timer: ", timer);
+  // console.log("remainingTime: ", remainingTime);
+  // console.log("playerPoints: ", playerPoints);
+  // console.log("currentWord: ", currentWord);
+  // console.log("isGameOver: ", isGameOver);
+  // console.log("hasWon: ", hasWon);
+  // console.log("roundWinner: ", roundWinner);
+
   return (
     <>
       <div className="flex items-center justify-center">
@@ -37,7 +76,7 @@ const DisplayPlay = ({
               : round !== 0 && <p>Round: {round}</p>}
 
             {numPlayers === 1 ? (
-              <p>Remaining Lives: {remainingLives[currentPlayer - 1]} </p>
+              <p>Remaining Lives: {remainingLives?.[currentPlayer - 1]} </p>
             ) : (
               ""
             )}
@@ -62,7 +101,7 @@ const DisplayPlay = ({
                       : ""
                   }`}>
                   Player {index + 1} - Lives: {life}
-                  <p>Points: {playerPoints[index]}</p>
+                  <p>Points: {playerPoints?.[index]}</p>
                 </div>
               ))}
               {!isGameOver && (

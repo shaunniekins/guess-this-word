@@ -1,15 +1,20 @@
-import "./globals.css";
+import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: "Guess This Word",
   description: "Created by Shaun Niel Ochavo",
-  icons: [{ rel: "icon", href: "/public/guess-this-word-logo.png" }],
+  icons: [{ rel: "icon", href: "/guess-this-word-logo.png" }],
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body className={inter.className}>{children}</body>

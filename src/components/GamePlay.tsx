@@ -1,39 +1,52 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import wordData from "../data/words.json";
+import { wordData } from "../data/words.js";
 import GuessModal from "./GuessModal";
 import DisplayPlay from "./DisplayPlay";
 
-const GamePlay = ({ numPlayers, numLives, timer, setGameStarted }) => {
-  const [currentWord, setCurrentWord] = useState("");
-  const [usedWords, setUsedWords] = useState([]); // Track used words
-  const [category, setCategory] = useState("");
-  const [guesses, setGuesses] = useState([]);
-  const [remainingTime, setRemainingTime] = useState(timer);
-  const [currentPlayer, setCurrentPlayer] = useState(1);
-  const [disqualifiedPlayers, setDisqualifiedPlayers] = useState([]);
-  const [round, setRound] = useState(numPlayers === 1 ? 0 : 1);
-  const [remainingLives, setRemainingLives] = useState(
+type WordData = {
+  word: string;
+  category: string;
+};
+
+type GamePlayProps = {
+  numPlayers: number;
+  numLives: number;
+  timer: number;
+  setGameStarted: (gameStarted: boolean) => void;
+};
+
+const GamePlay: React.FC<GamePlayProps> = ({
+  numPlayers,
+  numLives,
+  timer,
+  setGameStarted,
+}) => {
+  const [currentWord, setCurrentWord] = useState<string>("");
+  const [usedWords, setUsedWords] = useState<string[]>([]);
+  const [category, setCategory] = useState<string>("");
+  const [guesses, setGuesses] = useState<string[]>([]);
+  const [remainingTime, setRemainingTime] = useState<number>(timer);
+  const [currentPlayer, setCurrentPlayer] = useState<number>(1);
+  const [disqualifiedPlayers, setDisqualifiedPlayers] = useState<number[]>([]);
+  const [round, setRound] = useState<number>(numPlayers === 1 ? 0 : 1);
+  const [remainingLives, setRemainingLives] = useState<number[]>(
     Array.from({ length: numPlayers }, () => numLives)
   );
 
-  // single player: 1; multiplayer: 2 or more
-  const [players, setPlayers] = useState(
+  const [players, setPlayers] = useState<number[]>(
     Array.from({ length: numPlayers }, (_, i) => i + 1)
   );
 
-  // Guess word
-  const [isGuessModalOpen, setIsGuessModalOpen] = useState(false);
-  const [selectedPlayer, setSelectedPlayer] = useState(1);
-  const [guess, setGuess] = useState("");
+  const [isGuessModalOpen, setIsGuessModalOpen] = useState<boolean>(false);
+  const [selectedPlayer, setSelectedPlayer] = useState<number>(1);
+  const [guess, setGuess] = useState<string>("");
 
-  // Add a state variable for roundWinner
-  const [roundWinner, setRoundWinner] = useState(null);
-  const [isGameOver, setIsGameOver] = useState(false);
+  const [roundWinner, setRoundWinner] = useState<number | null>(null);
+  const [isGameOver, setIsGameOver] = useState<boolean>(false);
 
-  const playerTimers = useRef({});
-  console.log("usedWords", usedWords);
+  const playerTimers = useRef<{ [key: number]: number }>({});
 
   const handleGuessClick = () => {
     setIsGuessModalOpen(true);
@@ -62,7 +75,7 @@ const GamePlay = ({ numPlayers, numLives, timer, setGameStarted }) => {
         // Declare the overall game winner
         let gameWinner = 1;
         for (let i = 1; i < numPlayers; i++) {
-          if (playerPoints[i] > playerPoints[gameWinner - 1]) {
+          if (playerPoints[i] > playerPoints?.[gameWinner - 1]) {
             gameWinner = i + 1;
           }
         }
@@ -89,7 +102,7 @@ const GamePlay = ({ numPlayers, numLives, timer, setGameStarted }) => {
 
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * wordData.length);
-    const randomWord = wordData[randomIndex];
+    const randomWord = wordData?.[randomIndex];
 
     // useEffect(() => {
     //   const randomizeWord = () => {
@@ -121,9 +134,9 @@ const GamePlay = ({ numPlayers, numLives, timer, setGameStarted }) => {
       setCategory(newRandomWord.category);
     } else {
       // If it's not in usedWords, add it to usedWords and set the current word
-      setUsedWords([...usedWords, randomWord.word.toLowerCase()]);
-      setCurrentWord(randomWord.word.toLowerCase());
-      setCategory(randomWord.category);
+      setUsedWords?.([...usedWords, randomWord.word.toLowerCase()]);
+      setCurrentWord?.(randomWord.word.toLowerCase());
+      setCategory?.(randomWord.category);
     }
 
     // Rest of your code...
@@ -133,8 +146,11 @@ const GamePlay = ({ numPlayers, numLives, timer, setGameStarted }) => {
   }, [round, numLives, timer]);
 
   // Function to get a random word that hasn't been used yet
-  function getRandomUnusedWord(wordData, usedWords) {
-    let randomWord;
+  function getRandomUnusedWord(
+    wordData: WordData[],
+    usedWords: string[]
+  ): WordData {
+    let randomWord: WordData;
     do {
       const randomIndex = Math.floor(Math.random() * wordData.length);
       randomWord = wordData[randomIndex];
@@ -149,26 +165,26 @@ const GamePlay = ({ numPlayers, numLives, timer, setGameStarted }) => {
   useEffect(() => {
     if (numPlayers > 1 || (numPlayers === 1 && timer > 0)) {
       if (!isGameOver && !isGuessModalOpen) {
-        // Only run this logic if the modal is not open
-        let gameTimerInterval;
+        let gameTimerInterval: NodeJS.Timeout | null = null;
 
         if (remainingTime > 0) {
           gameTimerInterval = setInterval(() => {
             setRemainingTime((prevTime) => prevTime - 1);
           }, 1000);
         } else if (!disqualifiedPlayers.includes(currentPlayer)) {
-          // Disqualify the player if they run out of time
           disqualifyPlayer(currentPlayer);
           switchToNextPlayer();
         }
 
         // Stop the timer when a player wins
-        if (hasWon) {
+        if (hasWon && gameTimerInterval) {
           clearInterval(gameTimerInterval);
         }
 
         return () => {
-          clearInterval(gameTimerInterval);
+          if (gameTimerInterval) {
+            clearInterval(gameTimerInterval);
+          }
         };
       }
     }
@@ -191,10 +207,10 @@ const GamePlay = ({ numPlayers, numLives, timer, setGameStarted }) => {
     }
   }, [numPlayers, players, timer]);
 
-  const handleGuess = (letter) => {
+  const handleGuess = (letter: string) => {
     const letterLower = letter.toLowerCase();
     if (!guesses.includes(letterLower)) {
-      setGuesses([...guesses, letterLower]);
+      setGuesses?.([...guesses, letterLower]);
       if (!currentWord.includes(letterLower)) {
         const updatedLives = [...remainingLives];
         updatedLives[currentPlayer - 1] -= 1;
@@ -219,16 +235,16 @@ const GamePlay = ({ numPlayers, numLives, timer, setGameStarted }) => {
     setRemainingTime(playerTimers.current[nextPlayer]);
   };
 
-  const disqualifyPlayer = (player) => {
-    setDisqualifiedPlayers([...disqualifiedPlayers, player]);
+  const disqualifyPlayer = (player: number) => {
+    setDisqualifiedPlayers?.([...disqualifiedPlayers, player]);
   };
 
   const handleNextGame = () => {
     const randomIndex = Math.floor(Math.random() * wordData.length);
-    const randomWord = wordData[randomIndex];
+    const randomWord = wordData?.[randomIndex];
     setCurrentWord(randomWord.word.toLowerCase());
     setCategory(randomWord.category);
-    setGuesses([]);
+    setGuesses?.([]);
     setDisqualifiedPlayers([]);
     setRound(0);
     setRemainingLives(Array.from({ length: numPlayers }, () => numLives));
@@ -254,8 +270,8 @@ const GamePlay = ({ numPlayers, numLives, timer, setGameStarted }) => {
     const randomWord = wordData[randomIndex];
     setCurrentWord(randomWord.word.toLowerCase());
     setCategory(randomWord.category);
-    setGuesses([]);
-    setDisqualifiedPlayers([]);
+    setGuesses?.([]);
+    setDisqualifiedPlayers?.([]);
     setRemainingLives(Array.from({ length: numPlayers }, () => numLives));
     setRemainingTime(timer);
 

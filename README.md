@@ -1,36 +1,20 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Guess-This-Word
 
-## Getting Started
+Guess-This-Word is a fun and interactive game developed in Nextjs. The objective of the game is to guess a hidden word by suggesting letters within a certain number of tries.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Random Word Selection: The game selects a random word from a predefined list of words.
+- Limited Attempts: Players have a limited number of attempts to guess the word correctly.
+- Hint System: After a certain number of incorrect attempts, the game provides a hint to the player.
+- Scoring System: The game keeps track of the player's score based on the number of correct guesses and attempts taken.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## How to Play
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Run the game.
+2. The game will display a series of underscores representing the hidden word.
+3. Enter a letter. If the letter is in the word, the game will reveal its correct position in the word, otherwise, one attempt is deducted.
+4. Continue guessing letters until the word is fully revealed or all attempts are exhausted.
+5. If you guess the word correctly, you win! If not, the game reveals the correct word.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+**Note:** This project has been discontinued and may have issues.
